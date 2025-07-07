@@ -2,28 +2,29 @@
 # bootstrap.sh
 set -e
 
-if [[ "$*" == *"-s"* ]]; then
-    # Install ansible
-    # sudo apt update
-    sudo apt install -y ansible git
-    
-    # Clone roles repo (if not already present)
-    if [ ! -d "/etc/ansible/roles" ]; then
-        sudo mkdir -p /etc/ansible
-        sudo chown $(whoami):$(whoami) /etc/ansible
-        cd /etc/ansible
-        git clone git@github.com:maxcole/ansible.git roles
-    fi
+# Install ansible
+sudo apt update
+sudo apt install -y ansible git
+
+# Create ansible user with authorized key and passwordless sudo
+if ! id -u ansible &>/dev/null; then
+    sudo useradd -m -s /bin/bash ansible
+    sudo mkdir -p /home/ansible/.ssh
+    sudo cp authorized_keys /home/ansible/.ssh/authorized_keys
+    sudo chown -R ansible:ansible /home/ansible/.ssh
+    sudo chmod 700 /home/ansible/.ssh
+    sudo chmod 600 /home/ansible/.ssh/authorized_keys
+    echo "ansible ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ansible
 fi
 
-
-# Clone your config repo (if not already present)
-if [ ! -d "config" ]; then
-    git clone git@github.com:maxcole/config.git
+# Clone roles repo (if not already present)
+if [ ! -d "/etc/ansible/roles" ]; then
+    sudo -u ansible mkdir -p /etc/ansible
+    sudo -u ansible git clone git@github.com:maxcole/ansible.git /etc/ansible/roles
 fi
 
-cd config
+# Clone bootstrap repo to ansible user's home directory
+sudo -u ansible git clone https://github.com/maxcole/bootstrap.git /home/ansible/bootstrap
 
-# Run your main playbook
-ansible-playbook -i localhost, -c local site.yml # --ask-become-pass
-
+# Run the bootstrap playbook
+sudo -u ansible ansible-playbook /home/ansible/bootstrap/bootstrap.yml

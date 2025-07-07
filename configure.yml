@@ -5,16 +5,16 @@
   connection: local
   
   vars:
-    para_areas_path: ~/para/professional/areas
+    para_areas_path: "{{ ansible_user_dir }}/para/professional/areas"
     directories:
       - "{{ para_areas_path }}"
     repositories:
       - repo: git@github.com:maxcole/home-lab-provider.git
-        dest: "{{ para_areas_path }}"
+        dest: "{{ para_areas_path }}/home-lab-provider"
       - repo: git@github.com:maxcole/config.git
-        dest: "{{ para_areas_path }}"
+        dest: "{{ para_areas_path }}/config"
       - repo: git@github.com:maxcole/tools.git
-        dest: "{{ para_areas_path }}"
+        dest: "{{ para_areas_path }}/tools"
   
   tasks:
     - name: Create directories

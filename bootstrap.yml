@@ -9,12 +9,20 @@
         name: rbenv
       tags: [never]
         
+    - name: Check if para config needs stowing
+      command: stow -n -d /home/ansible/bootstrap -t /home/ansible para
+      register: stow_check
+      failed_when: false
+      changed_when: false
+      tags: [never]
+
     - name: Stow para config
       # GNU stow syntax: -d for source directory, -t for target, and para as the package
       command: stow -d /home/ansible/bootstrap -t /home/ansible para
+      # when: stow_check.rc != 0
       
     - name: Check para command availability
-      command: command -v para
+      shell: command -v para
       register: para_check
       ignore_errors: yes
       

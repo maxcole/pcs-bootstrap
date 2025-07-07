@@ -24,8 +24,10 @@ if [ ! -d "/etc/ansible/roles" ]; then
     sudo -u ansible git clone git@github.com:maxcole/ansible.git /etc/ansible/roles
 fi
 
-# Clone bootstrap repo to ansible user's home directory
-sudo -u ansible git clone https://github.com/maxcole/bootstrap.git /home/ansible/bootstrap
+# Clone bootstrap repo to ansible user's home directory (if not already present)
+if [ ! -d "/home/ansible/bootstrap" ]; then
+    sudo -u ansible git clone https://github.com/maxcole/bootstrap.git /home/ansible/bootstrap
+fi
 
 # Run the bootstrap playbook
-sudo -u ansible ansible-playbook /home/ansible/bootstrap/bootstrap.yml
+sudo -u ansible ansible-playbook -i localhost, /home/ansible/bootstrap/bootstrap.yml

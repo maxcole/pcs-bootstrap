@@ -1,3 +1,4 @@
+#!/usr/bin/env ansible-playbook -i localhost,
 ---
 - name: Bootstrap home lab machine
   hosts: localhost

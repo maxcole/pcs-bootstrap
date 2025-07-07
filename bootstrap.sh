@@ -30,4 +30,4 @@ if [ ! -d "/home/ansible/bootstrap" ]; then
 fi
 
 # Run the bootstrap playbook
-sudo -u ansible ansible-playbook -i localhost, /home/ansible/bootstrap/bootstrap.yml
+# sudo -u ansible ansible-playbook -i localhost, /home/ansible/bootstrap/configure.yml

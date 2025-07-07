@@ -1,0 +1,31 @@
+#!/usr/bin/env ansible-playbook -i localhost,
+---
+- name: Clone repositories
+  hosts: localhost
+  connection: local
+  
+  vars:
+    para_areas_path: ~/para/professional/areas
+    directories:
+      - "{{ para_areas_path }}"
+    repositories:
+      - repo: git@github.com:maxcole/home-lab-provider.git
+        dest: "{{ para_areas_path }}"
+      - repo: git@github.com:maxcole/config.git
+        dest: "{{ para_areas_path }}"
+      - repo: git@github.com:maxcole/tools.git
+        dest: "{{ para_areas_path }}"
+  
+  tasks:
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ directories }}"
+        
+    - name: Clone repositories
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ item.dest }}"
+      loop: "{{ repositories }}"

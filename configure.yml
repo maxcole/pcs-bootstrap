@@ -1,4 +1,4 @@
-#!/usr/bin/env ansible-playbook -i localhost,
+#!/usr/bin/env -S ansible-playbook -i localhost,
 ---
 - name: Clone repositories
   hosts: localhost

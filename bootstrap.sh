@@ -9,12 +9,13 @@ sudo apt install -y ansible git
 # Create ansible user with authorized key and passwordless sudo
 if ! id -u ansible &>/dev/null; then
     sudo useradd -m -s /bin/bash ansible
-    sudo mkdir -p /home/ansible/.ssh
+    echo "ansible ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ansible
+    sudo -u ansible mkdir -p /home/ansible/.ssh
     sudo cp authorized_keys /home/ansible/.ssh/authorized_keys
-    sudo chown -R ansible:ansible /home/ansible/.ssh
+    sudo chown ansible:ansible /home/ansible/.ssh/authorized_keys
     sudo chmod 700 /home/ansible/.ssh
     sudo chmod 600 /home/ansible/.ssh/authorized_keys
-    echo "ansible ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ansible
+    sudo -u ansible mkdir -p /home/ansible/.config /home/ansible/.local/bin /home/ansible/.local/share /home/ansible/.local/state /home/ansible/.cache
 fi
 
 # Clone roles repo (if not already present)

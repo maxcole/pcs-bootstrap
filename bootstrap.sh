@@ -22,16 +22,16 @@ fi
 
 # Clone roles repo (if not already present)
 if [ ! -d "/usr/share/ansible/collections" ]; then
-    sudo mkdir -p /usr/share/ansible/collections/ansible_collections
+    sudo mkdir -p /usr/share/ansible/collections/ansible_collections/rjayroach
     sudo chown:chown ansible /usr/share/ansible -R
-    sudo -u ansible git clone git@github.com:maxcole/ansible.git \
-      /usr/share/ansible/collections/ansible_collections/rjayroach
+    sudo -u ansible git clone git@github.com:maxcole/rjayroach.common.git \
+      /usr/share/ansible/collections/ansible_collections/rjayroach/common
 fi
 
 # Clone bootstrap repo to ansible user's home directory (if not already present)
-if [ ! -d "/home/ansible/bootstrap" ]; then
-    sudo -u ansible git clone https://github.com/maxcole/bootstrap.git /home/ansible/bootstrap
-fi
+# if [ ! -d "/home/ansible/bootstrap" ]; then
+#     sudo -u ansible git clone https://github.com/maxcole/bootstrap.git /home/ansible/bootstrap
+# fi
 
 # Run the bootstrap playbook
 # sudo -u ansible ansible-playbook -i localhost, /home/ansible/bootstrap/configure.yml

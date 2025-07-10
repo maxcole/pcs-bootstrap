@@ -1,7 +1,0 @@
----
-active_profile: professional
-level: NONE
-profiles:
-  professional:
-    areas:
-      git@github.com:maxcole/home-lab-provider.git:

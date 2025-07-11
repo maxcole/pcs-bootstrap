@@ -4,7 +4,7 @@ Bootstrap script for home lab infrastructure setup.
 
 ## Overview
 
-This script automates the initial setup of a home lab bootstrap machine (e.g., Raspberry Pi) by installing Ansible, configuring users, and installing Ansible roles via a collection.
+This script automates the initial setup of an rws bootstrap machine (e.g., Raspberry Pi) by installing Ansible, creating an Ansible eser, and installing an Ansible collection.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ This script automates the initial setup of a home lab bootstrap machine (e.g., R
 ## Usage
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/maxcole/bootstrap/refs/heads/main/bootstrap.sh | bash -s -- -s
+curl -sSL https://raw.githubusercontent.com/maxcole/rws-bootstrap/refs/heads/main/bootstrap.sh | bash -s -- -s
 ```
 
 ## Files

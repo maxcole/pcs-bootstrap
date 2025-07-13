@@ -4,12 +4,17 @@ set -e
 
 # Parse command line arguments
 SKIP_APT=false
+SKIP_CLONE=false
 USER="ansible"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -s|--skip-apt)
             SKIP_APT=true
+            shift
+            ;;
+        -c|--skip-clone)
+            SKIP_CLONE=true
             shift
             ;;
         *)
@@ -39,8 +44,8 @@ if ! id -u $USER &>/dev/null; then
     sudo chmod 600 /home/$USER/.ssh/authorized_keys
 fi
 
-# Clone roles repo (if not already present)
-if [ ! -d "/usr/share/ansible/collections" ]; then
+# Clone roles repo (if not already present and not skipping)
+if [ "$SKIP_CLONE" = false ] && [ ! -d "/usr/share/ansible/collections" ]; then
     sudo mkdir -p /usr/share/ansible/collections/ansible_collections/rjayroach
     sudo chown $USER:$USER /usr/share/ansible -R
     sudo -u $USER git clone git@github.com:maxcole/rjayroach.common.git \

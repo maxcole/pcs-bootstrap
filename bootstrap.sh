@@ -1,53 +1,106 @@
 #!/bin/bash
-# bootstrap.sh
 set -e
 
-# Parse command line arguments
-SKIP_APT=false
-SKIP_CLONE=false
-USER="ansible"
+# Environment variables
+AUTHORIZED_KEYS_URL="https://github.com/rjayroach.keys"
+ANSIBLE_COLLECTIONS_DIR="/usr/share/ansible/collections"
+OUR_COLLECTIONS_DIR="$ANSIBLE_COLLECTIONS_DIR/ansible_collections/rjayroach"
+GIT_CLONE_URL="git@github.com:maxcole/rjayroach.common.git"
+GIT_CLONE_DESTINATION="$OUR_COLLECTIONS_DIR/common"
 
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -s|--skip-apt)
-            SKIP_APT=true
-            shift
+# Parse command line arguments
+DO_INSTALL=false
+DO_USER=false
+DO_CLONE=false
+USER="$(whoami)"
+
+while getopts "ick:u::h" opt; do
+    case $opt in
+        c)
+            DO_CLONE=true
             ;;
-        -c|--skip-clone)
-            SKIP_CLONE=true
-            shift
+        i)
+            DO_INSTALL=true
             ;;
-        *)
-            USER="$1"
-            shift
+        k)
+            AUTHORIZED_KEYS_URL="$OPTARG"
+            ;;
+        u)
+            DO_USER=true
+            if [ -n "$OPTARG" ]; then
+                USER="$OPTARG"
+            fi
+            ;;
+        h)
+            echo "Usage: $0 [-i] [-c] [-k url] [-u [username]]"
+            echo "  -c: Clone the ansible collections repository"
+            echo "  -i: Install required packages"
+            echo "  -k: Override authorized_keys URL"
+            echo "  -u: Create user (defaults to current user if no username specified)"
+            exit 0
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            echo "Use -h for help"
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
             ;;
     esac
 done
 
-# Install ansible using the PPA method (skip if -s flag is set)
-if [ "$SKIP_APT" = false ]; then
-    sudo apt update
-    sudo apt install -y software-properties-common
-    sudo add-apt-repository --yes --update ppa:ansible/ansible
-    sudo apt install -y ansible git curl
+# Install required packages (only if -i flag is set)
+if [ "$DO_INSTALL" = true ]; then
+  # Detect OS
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+  elif [ -f /etc/redhat-release ]; then
+    OS="rhel"
+  else
+    OS="unknown"
+  fi
+
+  case $OS in
+    ubuntu|debian)
+      sudo sh -c 'set -e && \
+        apt update && \
+        apt install -y software-properties-common && \
+        add-apt-repository --yes --update ppa:ansible/ansible && \
+        apt install -y ansible git curl'
+      ;;
+    rhel|centos|fedora|rocky|almalinux)
+      echo "Red Hat/CentOS/Fedora is not currently supported"
+      exit 1
+      ;;
+    *)
+      echo "Unknown OS is not currently supported"
+      exit 1
+      ;;
+  esac
 fi
 
-# Create user with authorized key and passwordless sudo
-if ! id -u $USER &>/dev/null; then
-    sudo adduser --disabled-password --gecos "" $USER
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
-    sudo -u $USER mkdir -p /home/$USER/.ssh
-    sudo -u $USER curl -o /home/$USER/.ssh/authorized_keys \
-      https://raw.githubusercontent.com/maxcole/rws-bootstrap/refs/heads/main/authorized_keys
-    sudo chown $USER:$USER /home/$USER/.ssh/authorized_keys
-    sudo chmod 700 /home/$USER/.ssh
-    sudo chmod 600 /home/$USER/.ssh/authorized_keys
+# Create user with authorized key and passwordless sudo (only if -u flag is set)
+if [ "$DO_USER" = true ]; then
+  if ! id -u $USER &>/dev/null; then
+    sudo sh -c "set -e && \
+      useradd -m -s /bin/bash $USER"
+  fi
+  sudo sh -c "set -e && \
+    echo \"$USER ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/$USER
+    mkdir -p /home/$USER/.ssh && \
+    curl -o /home/$USER/.ssh/authorized_keys $AUTHORIZED_KEYS_URL && \
+    chown -R $USER:$USER /home/$USER/.ssh && \
+    chmod 700 /home/$USER/.ssh && \
+    chmod 600 /home/$USER/.ssh/authorized_keys"
 fi
 
-# Clone roles repo (if not already present and not skipping)
-if [ "$SKIP_CLONE" = false ] && [ ! -d "/usr/share/ansible/collections" ]; then
-    sudo mkdir -p /usr/share/ansible/collections/ansible_collections/rjayroach
-    sudo chown $USER:$USER /usr/share/ansible -R
-    sudo -u $USER git clone git@github.com:maxcole/rjayroach.common.git \
-      /usr/share/ansible/collections/ansible_collections/rjayroach/common
+# Clone roles repo (only if -c flag is set and not already present)
+if [ "$DO_CLONE" = true ] && [ ! -d "$OUR_COLLECTIONS_DIR" ]; then
+  sudo sh -c "set -e && \
+    mkdir -p $OUR_COLLECTIONS_DIR && \
+    git clone $GIT_CLONE_URL $GIT_CLONE_DESTINATION && \
+    chown -R $USER:$USER $ANSIBLE_COLLECTIONS_DIR"
 fi

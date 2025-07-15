@@ -9,6 +9,7 @@ This script automates the initial setup of an rws bootstrap machine (e.g., Raspb
 ## Requirements
 
 - sudo is already installed
+- The current user has sudo permissions
 - Internet connectivity
 - SSH key access to GitHub repositories
 
@@ -17,16 +18,15 @@ This script automates the initial setup of an rws bootstrap machine (e.g., Raspb
 ### Bootstrap Script (`bootstrap.sh`)
 
 1. Installs the OS Ansible package
-2. Creates the Ansible user with an authorized key and passwordless sudo
+2. Creates a user with an authorized_keys file and passwordless sudo
 3. Clones the rjayroach.common Ansible collection repo and assigns ownership to the Ansible user
 
 ## Usage
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/maxcole/rws-bootstrap/refs/heads/main/bootstrap.sh | bash -s -- -s
+curl -sSL https://raw.githubusercontent.com/maxcole/rws-bootstrap/refs/heads/main/bootstrap.sh | bash -s -- -icu ansible
 ```
 
 ## Files
 
 - `bootstrap.sh` - Main bootstrap script
-- `authorized_keys` - SSH keys for the ansible user

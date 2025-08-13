@@ -104,7 +104,7 @@ if [ "$DO_CLONE" = true ]; then
     sudo chown -R $USER:$USER $ANSIBLE_COLLECTIONS_DIR
   fi
   # Directory doesn't exist, create and clone
-  sudo sh -c "set -e && \
+  sudo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" sh -c "set -e && \
     mkdir -p $OUR_COLLECTIONS_DIR && \
     git clone $GIT_CLONE_URL $GIT_CLONE_DESTINATION && \
     chown -R $USER:$USER $ANSIBLE_COLLECTIONS_DIR"

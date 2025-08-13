@@ -98,7 +98,12 @@ if [ "$DO_USER" = true ]; then
 fi
 
 # Clone collections repo (only if -c flag is set and not already present)
-if [ "$DO_CLONE" = true ] && [ ! -d "$OUR_COLLECTIONS_DIR" ]; then
+if [ "$DO_CLONE" = true ]; then
+  if [ -d "$OUR_COLLECTIONS_DIR" ]; then
+    # Directory exists, ensure proper ownership before proceeding
+    sudo chown -R $USER:$USER $ANSIBLE_COLLECTIONS_DIR
+  fi
+  # Directory doesn't exist, create and clone
   sudo sh -c "set -e && \
     mkdir -p $OUR_COLLECTIONS_DIR && \
     git clone $GIT_CLONE_URL $GIT_CLONE_DESTINATION && \

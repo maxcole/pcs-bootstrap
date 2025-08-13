@@ -21,7 +21,7 @@ This script automates the initial configuration of a Debian Linux vanilla system
 
 ### Bootstrap Script (`bootstrap.sh`)
 
-1. Installs the OS Ansible package
+1. Installs the latest Ansible release
 2. Creates a user `ansible` with an authorized_keys file and passwordless sudo
 3. Clones the pcs.common Ansible collection repo and assigns ownership to the Ansible user
 

@@ -4,9 +4,9 @@ set -e
 # Environment variables
 AUTHORIZED_KEYS_URL="https://github.com/rjayroach.keys"
 ANSIBLE_COLLECTIONS_DIR="/usr/share/ansible/collections"
-OUR_COLLECTIONS_DIR="$ANSIBLE_COLLECTIONS_DIR/ansible_collections/rjayroach"
-GIT_CLONE_URL="git@github.com:maxcole/rjayroach.common.git"
-GIT_CLONE_DESTINATION="$OUR_COLLECTIONS_DIR/common"
+OUR_COLLECTIONS_DIR="$ANSIBLE_COLLECTIONS_DIR/ansible_collections/pcs"
+GIT_CLONE_URL="git@github.com:maxcole/pcs.infra.git"
+GIT_CLONE_DESTINATION="$OUR_COLLECTIONS_DIR/infra"
 
 # Parse command line arguments
 DO_INSTALL=false
@@ -97,7 +97,7 @@ if [ "$DO_USER" = true ]; then
     chmod 600 /home/$USER/.ssh/authorized_keys"
 fi
 
-# Clone roles repo (only if -c flag is set and not already present)
+# Clone collections repo (only if -c flag is set and not already present)
 if [ "$DO_CLONE" = true ] && [ ! -d "$OUR_COLLECTIONS_DIR" ]; then
   sudo sh -c "set -e && \
     mkdir -p $OUR_COLLECTIONS_DIR && \

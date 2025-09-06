@@ -2,44 +2,23 @@
 set -e
 
 # Environment variables
-ANSIBLE_COLLECTIONS_DIR="/usr/share/ansible/collections"
-OUR_COLLECTIONS_DIR="$ANSIBLE_COLLECTIONS_DIR/ansible_collections/pcs"
-GIT_CLONE_URL="git@github.com:maxcole/pcs.user.git"
-GIT_CLONE_DESTINATION="$OUR_COLLECTIONS_DIR/user"
+ANSIBLE_DIR="$HOME/.ansible"
+COLLECTIONS_DIR="$ANSIBLE_DIR/collections/ansible_collections"
+COLLECTIONS_URLS=("git@github.com:maxcole/pcs.infra.git" "git@github.com:maxcole/pcs.user.git")
 
-# Parse command line arguments
-DO_INSTALL=true
-DO_CLONE=true
-USER=ansible
+# Parse Git URL to create destination directory
+parse_git_url_to_dir() {
+    local git_url=$1
+    local repo_name
 
-while getopts "ick:u::h" opt; do
-    case $opt in
-        c)
-            DO_CLONE=true
-            ;;
-        i)
-            DO_INSTALL=true
-            ;;
-        h)
-            echo "Usage: $0 [-i] [-c]]"
-            echo "  -c: Clone the ansible collections repository"
-            echo "  -i: Install required packages"
-            exit 0
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
-            echo "Use -h for help"
-            exit 1
-            ;;
-        :)
-            echo "Option -$OPTARG requires an argument." >&2
-            exit 1
-            ;;
-    esac
-done
+    # Extract repository name from git URL (e.g., "pcs.infra.git" from "git@github.com:maxcole/pcs.infra.git")
+    repo_name=$(basename "$git_url" .git)
 
-# Install required packages (only if -i flag is set)
-if [ "$DO_INSTALL" = true ]; then
+    # Split on dots and create directory structure (e.g., "pcs.infra" becomes "pcs/infra")
+    echo "$repo_name" | sed 's/\./\//g'
+}
+
+install() {
   # Detect OS
   if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -67,17 +46,47 @@ if [ "$DO_INSTALL" = true ]; then
       exit 1
       ;;
   esac
+}
+
+# Clone collections repositories
+clone() {
+  for git_url in "${COLLECTIONS_URLS[@]}"; do
+    # debug "Processing repository: $git_url"
+
+    # Parse the git URL to determine destination directory
+    dest_subdir=$(parse_git_url_to_dir "$git_url")
+    dest_path="$COLLECTIONS_DIR/$dest_subdir"
+    # debug "Destination directory: $dest_path"
+
+    # Check if destination already exists
+    if [ -d "$dest_path" ]; then
+      echo "Repository already exists at $dest_path, skipping clone"
+      continue
+    fi
+    git clone $git_url $dest_path
+  done
+}
+
+
+# Script must be run as the ansible user
+if [[ "$(whoami)" != "ansible" ]]; then
+  echo "Only run as user ansible. abort."
+  exit 1
 fi
 
-# Clone collections repo (only if -c flag is set and not already present)
-if [ "$DO_CLONE" = true ]; then
-  if [ -d "$OUR_COLLECTIONS_DIR" ]; then
-    # Directory exists, ensure proper ownership before proceeding
-    sudo chown -R $USER:$USER $ANSIBLE_COLLECTIONS_DIR
-  fi
-  # Directory doesn't exist, create and clone
-  sudo SSH_AUTH_SOCK="$SSH_AUTH_SOCK" sh -c "set -e && \
-    mkdir -p $OUR_COLLECTIONS_DIR && \
-    git clone $GIT_CLONE_URL $GIT_CLONE_DESTINATION && \
-    chown -R $USER:$USER $ANSIBLE_COLLECTIONS_DIR"
+# Parse command line arguments
+functions_to_call=()
+
+if [ $# -eq 1 -a "$1" = "all" ]; then
+  functions_to_call+=("install" "clone")
+elif [ $# -gt 0 ]; then
+  functions_to_call=("$@")
+else
+  echo "Usage: $0 [params]"
+  echo "  install: Install ansible and git"
+  echo "  clone: Clone the PCS repositories"
 fi
+
+for function_to_call in "${functions_to_call[@]}"; do
+  $function_to_call
+done

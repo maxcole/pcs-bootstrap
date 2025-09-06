@@ -28,10 +28,12 @@ userhome() {
 
 
 # Function to install dependencies
-install_deps() {
+deps() {
   if [[ "$(detect_os)" == "linux" ]]; then
     apt update
     apt install wget sudo -y
+  elif [[ "$(detect_os)" == "macos" ]]; then
+    systemsetup -setremotelogin on
   fi
 }
 
@@ -58,7 +60,7 @@ EOF
 
 
 # Function to create user on Linux
-create_user() {
+user() {
   if id -u "$USER" &>/dev/null; then
     echo "User $USER already exists"
     return 0
@@ -73,21 +75,21 @@ create_user() {
 }
 
 
-setup_sudo() {
+sudox() {
   if [[ "$(detect_os)" == "linux" ]]; then
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/$USER" > /dev/null
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
 
   elif [[ "$(detect_os)" == "macos" ]]; then
     # Add user to admin group for sudo access
     dseditgroup -o edit -a "$USER" -t user admin
     # Setup passwordless sudo
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/$USER" > /dev/null
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
   fi
 }
 
 
 # Function to setup SSH keys (works for both OS)
-setup_ssh_keys() {
+ssh_keys() {
   local home_dir
   home_dir=$(userhome)
 
@@ -120,15 +122,15 @@ fi
 functions_to_call=()
 
 if [ $# -eq 1 -a "$1" = "all" ]; then
-  functions_to_call+=("install_deps" "create_user" "setup_sudo" "setup_ssh_keys")
+  functions_to_call+=("deps" "user" "sudox" "ssh_keys")
 elif [ $# -gt 0 ]; then
   functions_to_call=("$@")
 else
   echo "Usage: $0 [params]"
-  echo "  install_deps: Install any required dependencies"
-  echo "  create_user: Create the Ansible user"
-  echo "  setup_sudo: Create passwordless sudo for the Ansible user"
-  echo "  setup_ssh_keys: Add an authorized key for the Ansible user to connect with"
+  echo "  deps: Install any required dependencies"
+  echo "  user: Create the Ansible user"
+  echo "  sudox: Create passwordless sudo for the Ansible user"
+  echo "  ssh_keys: Add an authorized key for the Ansible user to connect with"
 fi
 
 for function_to_call in "${functions_to_call[@]}"; do

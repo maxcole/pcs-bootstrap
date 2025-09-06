@@ -21,7 +21,7 @@ This script automates the initial configuration of a Debian Linux vanilla system
 ### Usage
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/bootstrap.sh | bash -s --
+wget -qO- https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt.sh | bash -s --
 ```
 
 
@@ -40,5 +40,5 @@ curl -sSL https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/mai
 ### Usage
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/controller.sh | bash -s --
+wget -qO- https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/controller.sh | bash -s --
 ```

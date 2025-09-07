@@ -1,0 +1,36 @@
+---
+- name: Download ISO files to mounted storage
+  hosts: localhost
+  become: true
+  vars:
+    mount_point: "/mnt/iso_storage"
+    device_path: "/dev/sda1"
+    # filesystem_type: "ext4"
+    filesystem_type: "exfat"
+  vars_files:
+    - vars/ventoy_iso.yml
+
+  tasks:
+    - name: Ensure mount point directory exists
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if device is already mounted
+      command: mountpoint -q {{ mount_point }}
+      register: mount_check
+      failed_when: false
+      changed_when: false
+
+    - name: Mount the storage device
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ device_path }}"
+        fstype: "{{ filesystem_type }}"
+        state: mounted
+      when: mount_check.rc != 0
+
+    - name: Download ISOs
+      ansible.builtin.include_tasks:
+        file: download_iso.yml

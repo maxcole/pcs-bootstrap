@@ -1,0 +1,39 @@
+---
+- name: Install Base packages and Configuration
+  hosts: localhost
+  connection: local
+  vars:
+    - ventoy_version: v1.0.99
+    - ventoy_dir: ventoy-1.0.99
+    - ventoy_file: ventoy-1.0.99-linux.tar.gz
+    - ventoy_checksum: sha256:467cdd188a7f739bc706adbc1d695f61ffdefc95916adb015947d80829f00a3d
+    - ventoy_device: /dev/sda
+  tasks:
+
+  - name: Install packages
+    ansible.builtin.apt:
+      autoremove: yes
+      pkg:
+      - xz-utils
+      - fdisk
+      - parted
+      - dosfstools
+
+  - name: Download Ventoy
+    ansible.builtin.get_url:
+      url: "https://sourceforge.net/projects/ventoy/files/{{ ventoy_version }}/{{ ventoy_file }}"
+      dest: "{{ ansible_env.HOME }}/{{ ventoy_file }}"
+      checksum: "{{ ventoy_checksum }}"
+    register: download_ventoy
+
+  - name: Unarchive Ventoy
+    ansible.builtin.unarchive:
+      src: "{{ ansible_env.HOME }}/{{ ventoy_file }}"
+      dest: "{{ ansible_env.HOME }}"
+    when: download_ventoy.changed
+    # tags: [never]
+
+  - name: Install Ventoy on device
+    ansible.builtin.shell:
+      cmd: "sh Ventoy2Disk.sh -i {{ ventoy_device }}"
+      chdir: "{{ ansible_env.HOME }}/{{ ventoy_dir }}"

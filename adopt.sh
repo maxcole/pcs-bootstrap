@@ -62,7 +62,14 @@ deps_macos() {
     debug "See: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac"
     exit 1
   fi
-  xcode-select --install
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    debug "ERROR!!"
+    debug ""
+    debug "python interpreter not found. Run 'xcode-select --install' from a terminal then rerun this script"
+    exit 1
+  fi
+
   debug "Dependencies satisfied. Skipping"
 }
 

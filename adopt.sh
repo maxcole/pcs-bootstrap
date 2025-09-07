@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Environment variables
@@ -6,11 +6,12 @@ AUTHORIZED_KEYS_URL="https://github.com/rjayroach.keys"
 USER="ansible"
 
 
+# Support functions
 debug() {
   echo "adopt: $1"
 }
 
-# Function to detect OS
+# Detect the OS
 detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "linux"
@@ -22,7 +23,7 @@ detect_os() {
 }
 
 
-# Function to get user home directory based on OS
+# Get the user's home directory based on OS
 userhome() {
   if [[ "$(detect_os)" == "macos" ]]; then
     echo "/Users/$USER"
@@ -42,19 +43,26 @@ deps() {
 }
 
 deps_linux() {
-  if command -v sudo &> /dev/null && command -v wget &> /dev/null; then
+  if command -v sudo &> /dev/null && command -v curl &> /dev/null; then
     debug "Dependencies satisfied. Skipping"
     return
   fi
 
   apt update
-  apt install wget sudo -y
-  debug "Configured Linux dependencies"
+  apt install curl sudo -y
+  debug "Dependencies configured"
 }
 
 deps_macos() {
-  systemsetup -setremotelogin on
-  debug "Configured MacOS dependencies"
+  ssh_status=$(sudo systemsetup -getremotelogin 2>/dev/null)
+  if [[ "$ssh_status" == *"Off"* ]]; then
+    debug "ERROR!!"
+    debug ""
+    debug "Open System Preferences and turn on Remote Login and enable Full Disk Access"
+    debug "See: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac"
+    exit 1
+  fi
+  debug "Dependencies satisfied. Skipping"
 }
 
 
@@ -86,7 +94,7 @@ create_user_macos() {
 
     # Create the user with all attributes using here document
     dscl . << EOF
--create "$(userhome)" UserShell /bin/bash
+-create "$(userhome)" UserShell /bin/zsh
 -create "$(userhome)" RealName "$USER"
 -create "$(userhome)" UniqueID $next_uid
 -create "$(userhome)" PrimaryGroupID 20
@@ -100,19 +108,16 @@ EOF
 
 # Enable passwordless sudo for user
 sudox() {
-  if [ -f "/etc/sudoers.d/$USER" ]; then
-    debug "/etc/sudoers.d/$USER already exists. Skipping"
-    return
-  fi
-
   if [[ "$(detect_os)" == "linux" ]]; then
+    if [ -f "/etc/sudoers.d/$USER" ]; then
+      debug "/etc/sudoers.d/$USER already exists. Skipping"
+      return
+    fi
     echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
 
   elif [[ "$(detect_os)" == "macos" ]]; then
     # Add user to admin group for sudo access
-    dseditgroup -o edit -a "$USER" -t user admin
-    # Setup passwordless sudo
-    echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
+    dscl . -append /Groups/admin GroupMembership $USER
   fi
   debug "Setup sudo for user '$USER'"
 }
@@ -132,7 +137,7 @@ ssh_keys() {
   fi
 
   # Download and setup authorized keys
-  wget -O "$home_dir/.ssh/authorized_keys" "$AUTHORIZED_KEYS_URL"
+  curl -o "$home_dir/.ssh/authorized_keys" "$AUTHORIZED_KEYS_URL"
 
   # Set proper ownership and permissions
   chown -R "$USER:$(id -gn "$USER" 2>/dev/null || echo "staff")" "$home_dir/.ssh"

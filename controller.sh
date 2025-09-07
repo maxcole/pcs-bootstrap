@@ -40,7 +40,7 @@ install() {
         apt update && \
         # apt install -y software-properties-common && \
         # add-apt-repository --yes --update ppa:ansible/ansible && \
-        apt install -y ansible git'
+        apt install -y ansible git nmap'
       ;;
     rhel|centos|fedora|rocky|almalinux)
       echo "Red Hat/CentOS/Fedora is not currently supported"
@@ -89,7 +89,7 @@ else
   echo "Usage: $0 [params]"
   echo "  all: Execute all of the below commands"
   echo ""
-  echo "  install: Install ansible and git"
+  echo "  install: Install ansible and related dependencies"
   echo "  clone: Clone the PCS repositories"
   echo ""
 fi

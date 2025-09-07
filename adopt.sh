@@ -62,6 +62,7 @@ deps_macos() {
     debug "See: https://support.apple.com/lt-lt/guide/mac-help/mchlp1066/mac"
     exit 1
   fi
+  xcode-select --install
   debug "Dependencies satisfied. Skipping"
 }
 
@@ -118,6 +119,7 @@ sudox() {
   elif [[ "$(detect_os)" == "macos" ]]; then
     # Add user to admin group for sudo access
     dscl . -append /Groups/admin GroupMembership $USER
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/private/etc/sudoers.d/$USER" > /dev/null
   fi
   debug "Setup sudo for user '$USER'"
 }

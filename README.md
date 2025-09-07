@@ -21,6 +21,18 @@ This script automates the setup of a Debian Linux vanilla system or derivative, 
 - Internet connectivity
 - An SSH key with access to specific GitHub repositories
 
+### MacOS Additional Requirements
+
+Before a Mac can be managed be ansible it requires the ssh server to be enabled and a python interpreter. Both of these actions must be done manually.
+
+- Enabled Remote Login with Full Disk Access
+- Install XCode Command Line Tools
+
+```bash
+xcode-select --instal
+```
+
+
 ### Usage
 
 ```bash
@@ -31,27 +43,6 @@ OR if running as a non root user with sudo privileges:
 
 ```bash
 wget -qO- https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt.sh | sudo bash -s -- all
-```
-
-
-## adopt_mac.sh
-
-### Overview
-
-Before a Mac can be managed be ansible it requires a package manager and a python interpreter. This script automates the installation process. It:
-
-- Installs Homebrew which in turn installs Xcode
-- Uses Homebrew to install python3 and wget
-- Runs the `adopt.sh` script
-
-### Requirements
-
-- The same as `adopt.sh`
-
-### Usage
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt_mac.sh | bash -s --
 ```
 
 

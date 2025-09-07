@@ -29,7 +29,7 @@ Before a Mac can be managed be ansible it requires the ssh server to be enabled 
 - Install XCode Command Line Tools
 
 ```bash
-xcode-select --instal
+xcode-select --install
 ```
 
 

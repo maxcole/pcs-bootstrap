@@ -5,6 +5,11 @@ set -e
 AUTHORIZED_KEYS_URL="https://github.com/rjayroach.keys"
 USER="ansible"
 
+
+debug() {
+  echo "adopt: $1"
+}
+
 # Function to detect OS
 detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -27,16 +32,50 @@ userhome() {
 }
 
 
-# Function to install dependencies
+# Configure dependencies
 deps() {
   if [[ "$(detect_os)" == "linux" ]]; then
-    apt update
-    apt install wget sudo -y
+    deps_linux
   elif [[ "$(detect_os)" == "macos" ]]; then
-    systemsetup -setremotelogin on
+    deps_macos
   fi
 }
 
+deps_linux() {
+  if command -v sudo &> /dev/null && command -v wget &> /dev/null; then
+    debug "Dependencies satisfied. Skipping"
+    return
+  fi
+
+  apt update
+  apt install wget sudo -y
+  debug "Configured Linux dependencies"
+}
+
+deps_macos() {
+  systemsetup -setremotelogin on
+  debug "Configured MacOS dependencies"
+}
+
+
+# Create user
+user() {
+  if id -u "$USER" &>/dev/null; then
+    debug "User '$USER' already exists. Skipping"
+    return 0
+  fi
+
+  if [[ "$(detect_os)" == "linux" ]]; then
+    create_user_linux
+  elif [[ "$(detect_os)" == "macos" ]]; then
+    create_user_macos
+  fi
+  debug "Created user '$USER'"
+}
+
+create_user_linux() {
+  useradd -m -s /bin/bash "$USER"
+}
 
 create_user_macos() {
     # Find the next available UID (starting from 501 for regular users)
@@ -59,23 +98,13 @@ EOF
 }
 
 
-# Function to create user on Linux
-user() {
-  if id -u "$USER" &>/dev/null; then
-    echo "User $USER already exists"
-    return 0
-  fi
-
-  if [[ "$(detect_os)" == "linux" ]]; then
-    useradd -m -s /bin/bash "$USER"
-    echo "Created user: $USER"
-  elif [[ "$(detect_os)" == "macos" ]]; then
-    create_user_macos
-  fi
-}
-
-
+# Enable passwordless sudo for user
 sudox() {
+  if [ -f "/etc/sudoers.d/$USER" ]; then
+    debug "/etc/sudoers.d/$USER already exists. Skipping"
+    return
+  fi
+
   if [[ "$(detect_os)" == "linux" ]]; then
     echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
 
@@ -85,16 +114,22 @@ sudox() {
     # Setup passwordless sudo
     echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
   fi
+  debug "Setup sudo for user '$USER'"
 }
 
 
-# Function to setup SSH keys (works for both OS)
+# Setup SSH keys for user
 ssh_keys() {
   local home_dir
   home_dir=$(userhome)
 
   # Create .ssh directory
   mkdir -p "$home_dir/.ssh"
+
+  if [ -f "$home_dir/.ssh/authorized_keys" ]; then
+    debug "$home_dir/.ssh/authorized_keys already exists. Skipping"
+    return
+  fi
 
   # Download and setup authorized keys
   wget -O "$home_dir/.ssh/authorized_keys" "$AUTHORIZED_KEYS_URL"
@@ -103,17 +138,19 @@ ssh_keys() {
   chown -R "$USER:$(id -gn "$USER" 2>/dev/null || echo "staff")" "$home_dir/.ssh"
   chmod 700 "$home_dir/.ssh"
   chmod 600 "$home_dir/.ssh/authorized_keys"
-  # echo "SSH keys setup completed for $USER"
+  debug "Setup SSH keys for user '$USER' from $AUTHORIZED_KEYS_URL"
 }
 
 
 # Check if running as root
 if [[ $EUID -ne 0 ]]; then
-  echo "This script must be run as root (or use sudo)"
+  debug "This script must be run as root (or use sudo)"
   exit 1
+fi
+
 # Check OS support before proceeding
-elif [[ "$(detect_os)" == "unsupported" ]]; then
-  echo "Error: Unsupported operating system: $OSTYPE"
+if [[ "$(detect_os)" == "unsupported" ]]; then
+  debug "Unsupported operating system: $OSTYPE"
   exit 1
 fi
 

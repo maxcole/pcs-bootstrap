@@ -51,7 +51,7 @@ Before a Mac can be managed be ansible it requires a package manager and a pytho
 ### Usage
 
 ```bash
-curl -o https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt_mac.sh | bash -s --
+curl -fsSL https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt_mac.sh | bash -s --
 ```
 
 

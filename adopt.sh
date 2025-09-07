@@ -164,10 +164,13 @@ elif [ $# -gt 0 ]; then
   functions_to_call=("$@")
 else
   echo "Usage: $0 [params]"
-  echo "  deps: Install any required dependencies"
-  echo "  user: Create the Ansible user"
-  echo "  sudox: Create passwordless sudo for the Ansible user"
-  echo "  ssh_keys: Add an authorized key for the Ansible user to connect with"
+  echo "  all: Execute all of the below commands"
+  echo ""
+  echo "  deps: Configure required dependencies"
+  echo "  user: Create the user '$USER'"
+  echo "  sudox: Create passwordless sudo for the user '$USER'"
+  echo "  ssh_keys: Add the authorized_keys file for the user '$USER'"
+  echo ""
 fi
 
 for function_to_call in "${functions_to_call[@]}"; do

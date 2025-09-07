@@ -2,9 +2,14 @@
 set -e
 
 # Environment variables
+USER=ansible
 ANSIBLE_DIR="$HOME/.ansible"
 COLLECTIONS_DIR="$ANSIBLE_DIR/collections/ansible_collections"
 COLLECTIONS_URLS=("git@github.com:maxcole/pcs.infra.git" "git@github.com:maxcole/pcs.user.git")
+
+debug() {
+  echo "controller: $1"
+}
 
 # Parse Git URL to create destination directory
 parse_git_url_to_dir() {
@@ -51,26 +56,25 @@ install() {
 # Clone collections repositories
 clone() {
   for git_url in "${COLLECTIONS_URLS[@]}"; do
-    # debug "Processing repository: $git_url"
-
     # Parse the git URL to determine destination directory
     dest_subdir=$(parse_git_url_to_dir "$git_url")
     dest_path="$COLLECTIONS_DIR/$dest_subdir"
-    # debug "Destination directory: $dest_path"
 
     # Check if destination already exists
     if [ -d "$dest_path" ]; then
-      echo "Repository already exists at $dest_path, skipping clone"
+      debug "Repository already exists at $dest_path. Skipping"
       continue
     fi
-    git clone $git_url $dest_path
+
+    debug "Cloning repository $git_url to $dest_path"
+    git clone --quiet $git_url $dest_path
   done
 }
 
 
 # Script must be run as the ansible user
-if [[ "$(whoami)" != "ansible" ]]; then
-  echo "Only run as user ansible. abort."
+if [[ "$(whoami)" != "$USER" ]]; then
+  debug "Only run as user '$USER'. Abort"
   exit 1
 fi
 
@@ -83,8 +87,11 @@ elif [ $# -gt 0 ]; then
   functions_to_call=("$@")
 else
   echo "Usage: $0 [params]"
+  echo "  all: Execute all of the below commands"
+  echo ""
   echo "  install: Install ansible and git"
   echo "  clone: Clone the PCS repositories"
+  echo ""
 fi
 
 for function_to_call in "${functions_to_call[@]}"; do

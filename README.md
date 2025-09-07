@@ -24,6 +24,12 @@ This script automates the initial configuration of a Debian Linux vanilla system
 wget -qO- https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt.sh | bash -s -- all
 ```
 
+OR if running as a non root user with sudo privileges:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/adopt.sh | sudo bash -s -- all
+```
+
 
 ## controller.sh
 

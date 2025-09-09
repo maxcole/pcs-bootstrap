@@ -58,7 +58,9 @@ install() {
 # Clone collections repositories
 clone() {
   # Clone this repo
-  git clone $REPO_URL $REPO_DIR
+  if [ ! -d "$REPO_DIR" ]; then
+    git clone $REPO_URL $REPO_DIR
+  fi
 
   for git_url in "${COLLECTIONS_URLS[@]}"; do
     # Parse the git URL to determine destination directory
@@ -74,7 +76,7 @@ clone() {
     fi
 
     # Create softlink to repo dir
-    ln -s $dest_path $HOME/pcs
+    ln -s $dest_path $HOME/pcs 2>/dev/null
   done
 }
 

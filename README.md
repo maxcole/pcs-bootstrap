@@ -25,8 +25,11 @@ This script automates the setup of a Debian Linux vanilla system or derivative, 
 
 Before a Mac can be managed be ansible it requires the ssh server to be enabled and a python interpreter. Both of these actions must be done manually.
 
-- Enabled Remote Login with Full Disk Access
-- Install XCode Command Line Tools
+#### 1. Enable Remote Login with Full Disk Access
+- System Settings → General → Sharing → Remote Login
+- System Settings → Battery → Options... → Prevent automatic sleeping on power adapter when the display is off
+
+#### 2. Install XCode Command Line Tools
 
 ```bash
 xcode-select --install

@@ -6,6 +6,8 @@ USER=ansible
 ANSIBLE_DIR="$HOME/.ansible"
 COLLECTIONS_DIR="$ANSIBLE_DIR/collections/ansible_collections"
 COLLECTIONS_URLS=("git@github.com:maxcole/pcs.infra.git" "git@github.com:maxcole/pcs.user.git")
+REPO_URL="git@github.com:maxcole/pcs-bootstrap.git"
+REPO_DIR=$HOME/pcs/bootstrap
 
 debug() {
   echo "controller: $1"
@@ -55,6 +57,9 @@ install() {
 
 # Clone collections repositories
 clone() {
+  # Clone this repo
+  git clone $REPO_URL $REPO_DIR
+
   for git_url in "${COLLECTIONS_URLS[@]}"; do
     # Parse the git URL to determine destination directory
     dest_subdir=$(parse_git_url_to_dir "$git_url")
@@ -63,11 +68,13 @@ clone() {
     # Check if destination already exists
     if [ -d "$dest_path" ]; then
       debug "Repository already exists at $dest_path. Skipping"
-      continue
+    else
+      debug "Cloning repository $git_url to $dest_path"
+      git clone --quiet $git_url $dest_path
     fi
 
-    debug "Cloning repository $git_url to $dest_path"
-    git clone --quiet $git_url $dest_path
+    # Create softlink to repo dir
+    ln -s $dest_path $HOME/pcs
   done
 }
 

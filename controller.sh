@@ -25,7 +25,7 @@ parse_git_url_to_dir() {
     echo "$repo_name" | sed 's/\./\//g'
 }
 
-install() {
+deps() {
   # Detect OS
   if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -56,7 +56,7 @@ install() {
 }
 
 # Clone collections repositories
-clone() {
+install() {
   # Clone this repo
   if [ ! -d "$REPO_DIR" ]; then
     git clone $REPO_URL $REPO_DIR
@@ -91,15 +91,15 @@ fi
 functions_to_call=()
 
 if [ $# -eq 1 -a "$1" = "all" ]; then
-  functions_to_call+=("install" "clone")
+  functions_to_call+=("deps" "install")
 elif [ $# -gt 0 ]; then
   functions_to_call=("$@")
 else
   echo "Usage: $0 [params]"
   echo "  all: Execute all of the below commands"
   echo ""
-  echo "  install: Install ansible and related dependencies"
-  echo "  clone: Clone the PCS repositories"
+  echo "  deps: Install ansible and related dependencies"
+  echo "  install: Clone the PCS repositories"
   echo ""
 fi
 

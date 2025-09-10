@@ -5,6 +5,11 @@ set -e
 AUTHORIZED_KEYS_URL="https://github.com/rjayroach.keys"
 USER="ansible"
 
+# Download and source the script
+if [ ! -f /tmp/pcs-library.sh ]; then
+  wget https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/library.sh > /tmp/pcs-library.sh
+fi
+source /tmp/pcs-library.sh
 
 # Support functions
 debug() {
@@ -12,20 +17,20 @@ debug() {
 }
 
 # Detect the OS
-detect_os() {
-  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "linux"
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "macos"
-  else
-    echo "unsupported"
-  fi
-}
+# os() {
+#   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+#     echo "linux"
+#   elif [[ "$OSTYPE" == "darwin"* ]]; then
+#     echo "macos"
+#   else
+#     echo "unsupported"
+#   fi
+# }
 
 
 # Get the user's home directory based on OS
 userhome() {
-  if [[ "$(detect_os)" == "macos" ]]; then
+  if [[ "$(os)" == "macos" ]]; then
     echo "/Users/$USER"
   else
     echo "/home/$USER"
@@ -35,9 +40,9 @@ userhome() {
 
 # Configure dependencies
 deps() {
-  if [[ "$(detect_os)" == "linux" ]]; then
+  if [[ "$(os)" == "linux" ]]; then
     deps_linux
-  elif [[ "$(detect_os)" == "macos" ]]; then
+  elif [[ "$(os)" == "macos" ]]; then
     deps_macos
   fi
 }
@@ -81,9 +86,9 @@ user() {
     return 0
   fi
 
-  if [[ "$(detect_os)" == "linux" ]]; then
+  if [[ "$(os)" == "linux" ]]; then
     create_user_linux
-  elif [[ "$(detect_os)" == "macos" ]]; then
+  elif [[ "$(os)" == "macos" ]]; then
     create_user_macos
   fi
   debug "Created user '$USER'"
@@ -116,14 +121,14 @@ EOF
 
 # Enable passwordless sudo for user
 sudox() {
-  if [[ "$(detect_os)" == "linux" ]]; then
+  if [[ "$(os)" == "linux" ]]; then
     if [ -f "/etc/sudoers.d/$USER" ]; then
       debug "/etc/sudoers.d/$USER already exists. Skipping"
       return
     fi
     echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/etc/sudoers.d/$USER" > /dev/null
 
-  elif [[ "$(detect_os)" == "macos" ]]; then
+  elif [[ "$(os)" == "macos" ]]; then
     # Add user to admin group for sudo access
     dscl . -append /Groups/admin GroupMembership $USER
     echo "$USER ALL=(ALL) NOPASSWD:ALL" | tee "/private/etc/sudoers.d/$USER" > /dev/null
@@ -163,7 +168,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Check OS support before proceeding
-if [[ "$(detect_os)" == "unsupported" ]]; then
+if [[ "$(os)" == "unsupported" ]]; then
   debug "Unsupported operating system: $OSTYPE"
   exit 1
 fi

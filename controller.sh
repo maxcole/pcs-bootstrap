@@ -9,40 +9,33 @@ COLLECTIONS_URLS=("git@github.com:maxcole/pcs.infra.git" "git@github.com:maxcole
 REPO_URL="git@github.com:maxcole/pcs-bootstrap.git"
 REPO_DIR=$HOME/pcs/bootstrap
 
+# Download and source the script
+if [ ! -f /tmp/pcs-library.sh ]; then
+  wget https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/library.sh > /tmp/pcs-library.sh
+fi
+source /tmp/pcs-library.sh
+
 debug() {
   echo "controller: $1"
 }
 
-# Parse Git URL to create destination directory
-parse_git_url_to_dir() {
-    local git_url=$1
-    local repo_name
-
-    # Extract repository name from git URL (e.g., "pcs.infra.git" from "git@github.com:maxcole/pcs.infra.git")
-    repo_name=$(basename "$git_url" .git)
-
-    # Split on dots and create directory structure (e.g., "pcs.infra" becomes "pcs/infra")
-    echo "$repo_name" | sed 's/\./\//g'
-}
-
-deps() {
-  # Detect OS
+linux() {
   if [ -f /etc/os-release ]; then
     . /etc/os-release
-    OS=$ID
+    echo $ID
   elif [ -f /etc/redhat-release ]; then
-    OS="rhel"
+    echo "rhel"
   else
-    OS="unknown"
+    echo "unknown"
   fi
+}
 
-  case $OS in
+
+deps() {
+  case linux in
     ubuntu|debian)
-      sudo sh -c 'set -e && \
-        apt update && \
-        # apt install -y software-properties-common && \
-        # add-apt-repository --yes --update ppa:ansible/ansible && \
-        apt install -y ansible git nmap'
+      sudo apt install git nmap -y
+      mise_linux
       ;;
     rhel|centos|fedora|rocky|almalinux)
       echo "Red Hat/CentOS/Fedora is not currently supported"

@@ -7,7 +7,7 @@ USER="ansible"
 
 # Download and source the script
 if [ ! -f /tmp/pcs-library.sh ]; then
-  wget https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/library.sh > /tmp/pcs-library.sh
+  wget -O /tmp/pcs-library.sh https://raw.githubusercontent.com/maxcole/pcs-bootstrap/refs/heads/main/library.sh
 fi
 source /tmp/pcs-library.sh
 

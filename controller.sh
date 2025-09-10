@@ -21,7 +21,7 @@ debug() {
 
 linux() {
   if [ -f /etc/os-release ]; then
-    . /etc/os-release
+    source /etc/os-release
     echo $ID
   elif [ -f /etc/redhat-release ]; then
     echo "rhel"
@@ -32,7 +32,7 @@ linux() {
 
 
 deps() {
-  case linux in
+  case $(linux) in
     ubuntu|debian)
       sudo apt install git nmap -y
       mise_linux
